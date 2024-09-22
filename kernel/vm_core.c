@@ -31,7 +31,7 @@ static inline void update_status_reg(int32_t result)
     else
        theVM->REGS[EZVM_Reg_S] = 1;
 }
-int zvm_init(void)
+int32_t zvm_init(void)
 {
     logging_init();
     theVM = (ZVM*)malloc(sizeof(ZVM));
@@ -110,8 +110,8 @@ bool zvm_run_vm()
             case EZVM_ADD:
                 // Add instruction, read operands and execute
                 {
-                    int32_t reg1 = theVM->prog_memory[pc];
-                    int32_t reg2 = theVM->prog_memory[pc + 1];
+                    int32_t reg1 = theVM->prog_memory[pc + 1];
+                    int32_t reg2 = theVM->prog_memory[pc + 2];
                     int32_t result = theVM->REGS[reg1] + theVM->REGS[reg2];
                     theVM->REGS[reg1] = result;
                     theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
@@ -120,8 +120,8 @@ bool zvm_run_vm()
             case EZVM_ADDI:
                 // Add immediate instruction, read operands and execute
                 {
-                    int32_t reg1 = theVM->prog_memory[pc];
-                    int32_t imm = theVM->prog_memory[pc + 1];
+                    int32_t reg1 = theVM->prog_memory[pc + 1];
+                    int32_t imm = theVM->prog_memory[pc + 2];
                     int32_t result = theVM->REGS[reg1] + imm;
                     theVM->REGS[reg1] = result;
                     theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
@@ -129,8 +129,8 @@ bool zvm_run_vm()
                 break;
             case EZVM_SUB:
             {
-                int32_t reg1 = theVM->prog_memory[pc];
-                int32_t reg2 = theVM->prog_memory[pc + 1];
+                int32_t reg1 = theVM->prog_memory[pc + 1];
+                int32_t reg2 = theVM->prog_memory[pc + 2];
                 int32_t result = theVM->REGS[reg1] - theVM->REGS[reg2];
                 theVM->REGS[reg1] = result;
                 theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
@@ -138,8 +138,8 @@ bool zvm_run_vm()
             break;
             case EZVM_SUBI:
             {
-                int32_t reg1 = theVM->prog_memory[pc];
-                int32_t imm = theVM->prog_memory[pc + 1];
+                int32_t reg1 = theVM->prog_memory[pc + 1];
+                int32_t imm = theVM->prog_memory[pc + 2];
                 int32_t result = theVM->REGS[reg1] - imm;
                 theVM->REGS[reg1] = result;
                 update_status_reg(result);
@@ -148,17 +148,33 @@ bool zvm_run_vm()
             break;
             case EZVM_MUL:
             {
-                int32_t reg1 = theVM->prog_memory[pc];
-                int32_t reg2 = theVM->prog_memory[pc + 1];
+                int32_t reg1 = theVM->prog_memory[pc + 1];
+                int32_t reg2 = theVM->prog_memory[pc + 2];
                 int32_t result = theVM->REGS[reg1] * theVM->REGS[reg2];
                 theVM->REGS[reg1] = result;
                 theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
             }
             break;
+            case EZVM_MULI:
+            {
+                int32_t reg1 = theVM->prog_memory[pc + 1];
+                int32_t val = theVM->prog_memory[pc + 2];
+                int32_t result = theVM->REGS[reg1] * val;
+                theVM->REGS[reg1] = result;
+                theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
+            }
+            break;
+            case EZVM_MOVI:
+                int32_t reg = theVM->prog_memory[pc + 1];
+                int32_t val = theVM->prog_memory[pc + 2];
+                theVM->REGS[reg] = val;
+                theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
+            break;
             case EZVM_SYSCALL:
             {
                 int32_t syscall = theVM->prog_memory[pc+1];
                 call_bios_func(syscall);
+                theVM->REGS[EZVM_Reg_PC] += 1; // Increment PC to skip operand
                 
             }    
             break;

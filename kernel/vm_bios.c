@@ -5,8 +5,9 @@ expects that R0 contains the address of the string to be printed and R1 contains
 */
 #include "vm_core.h"
 #include "vm_bios.h"
+#include <stdio.h>
 extern ZVM* theVM;
-
+#include "logging.h"
 /* 
 Bios functions Memory map
 0x0 -> reserved
@@ -40,11 +41,14 @@ bool call_bios_func(int32_t func_addr)
 }
 // Bios functions below
 
+// TODO Handle endianess so that data can be always big endian. now it is platform dependant
 bool bios_call_print()
 {
-    char*txt = (char*)theVM->prog_memory[theVM->REGS[EZVM_Reg_R0]];
-    int32_t len = theVM->REGS[EZVM_Reg_R1];
+    uint8_t*addr = (uint8_t*)(theVM->prog_memory);
+    char*txt=addr+(theVM->REGS[EZVM_Reg_R0]*sizeof(int32_t));
+    printf("ZVM program:");
     logging_log( txt );
+    printf("\n");
     return true;
 }
 bool bios_call_end_program()

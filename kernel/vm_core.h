@@ -51,6 +51,6 @@ bool zvm_run_vm(); // program must be loaded before calling this function
 void zvm_set_mode(CPUMode);
 void zvm_single_step();
 void zvm_set_panic(const char *msg);
-void zvm_init(void);
+int32_t zvm_init(void);
 
 #endif

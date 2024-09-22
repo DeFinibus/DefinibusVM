@@ -12,7 +12,11 @@ Implements main user interface for ZVM virtual machine
 #ifdef DEV_DEBUG
 
 uint32_t test_program[] ={
-    18,2 // SYSCALL end of program
+    21,0,7, // MOV R0,#7, which address of data
+    18,1, // SYSCALL print string
+    18,2, // SYSCALL end of program
+    //data as follows
+    0x6c6c6548,0x5a202c6f,0x77204d56,0x646c726f,0x0,0x0
 };
 
 #endif
