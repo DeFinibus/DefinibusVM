@@ -7,7 +7,7 @@ ZVM is a custom virtual machine designed to execute bytecode.
 ZVM is a software implementation of a virtual machine that provides a platform for executing bytecode. It includes a kernel, runtime environment, and other supporting components.
 Made just for fun and maybe also for learning purposes, hopefully.
 
-ZVM "CPU" has 8 general purpose registers, R0-R8, Program Counter(PC), stack pointer(SP) and status
+ZVM "CPU" has 8 general purpose registers, R0-R7, Program Counter(PC), stack pointer(SP) and status
 register. 
 See kernel/instr_set.h for opcodes. No other documentation yet about instruction set.
 
