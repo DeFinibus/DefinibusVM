@@ -41,7 +41,7 @@ bool call_bios_func(int32_t func_addr)
 }
 // Bios functions below
 
-// TODO Handle endianess so that data can be always big endian. now it is platform dependant
+// TODO Handle endianess so that data can be always big endian. now it is host platform dependant
 bool bios_call_print()
 {
     uint8_t*addr = (uint8_t*)(theVM->prog_memory);
