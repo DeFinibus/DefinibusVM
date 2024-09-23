@@ -29,6 +29,7 @@ typedef enum {
     EZVM_MOVR, // syntax mov Rx,$addr+Ry 
     EZVM_CMP, //syntax CMP Rx,#val. compare Rx to value. sets flags
     EZVM_JG, // syntax jg #addr. jump to address in program memory if result vas greater than 0
+    EZVM_JL, // syntax jl #addr. jump to address in program memory if result vas less than 0
     EZVM_OPCODEMAX
 }EZVM_InstrSet;
 

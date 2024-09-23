@@ -12,10 +12,15 @@ Implements main user interface for ZVM virtual machine
 #ifdef DEV_DEBUG
 
 uint32_t test_program[] ={
-    21,0,7, // MOV R0,#7, which is address of data
+    21,1,0, // MOV R1,#0, 
+    21,0,18, // MOV R0,#7, which is address of data
     18,1, // SYSCALL print string
+    2,1,1, // ADDI R1,1   increment R1
+    14,1,5, // CMPI R1,5
+    27,6, // jump if R1 smaller than 5 to address 6 (start of loop)
     18,2, // SYSCALL end of program
-    //data as follows
+    //data as follows, now in host (x86) little endian format as endianess not handled yet in ZVM
+   // l l e H    Z   , o    W   M V    d l r o
     0x6c6c6548,0x5a202c6f,0x77204d56,0x646c726f,0x0,0x0
 };
 

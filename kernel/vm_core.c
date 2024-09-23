@@ -31,6 +31,21 @@ static inline void update_status_reg(int32_t result)
     else
        theVM->REGS[EZVM_Reg_S] = 1;
 }
+void dump_regs()
+{
+    logging_log("R0=%d R1=%d R2=%d R3=%d R4=%d R5=%d R6=%d R7=%d SP=%d PC=%d S=%d\n",
+        theVM->REGS[EZVM_Reg_R0],
+        theVM->REGS[EZVM_Reg_R1],
+        theVM->REGS[EZVM_Reg_R2],
+        theVM->REGS[EZVM_Reg_R3],
+        theVM->REGS[EZVM_Reg_R4],
+        theVM->REGS[EZVM_Reg_R5],
+        theVM->REGS[EZVM_Reg_R6],
+        theVM->REGS[EZVM_Reg_R7],
+        theVM->REGS[EZVM_Reg_SP],
+        theVM->REGS[EZVM_Reg_PC],
+        theVM->REGS[EZVM_Reg_S]);
+}
 int32_t zvm_init(void)
 {
     logging_init();
@@ -42,6 +57,7 @@ int32_t zvm_init(void)
  
     memset(theVM->prog_memory,0,sizeof(theVM->prog_memory));
     memset(theVM->REGS,0,sizeof(theVM->REGS));
+    memset(theVM->stack,0,sizeof(theVM->stack));
     theVM->video_memory = 0; // not in use by default. Initialized by (possible) video driver
     theVM->debug = true;
     theVM->panic = false;
@@ -79,29 +95,8 @@ bool zvm_load_program_to_memory(uint8_t*data, uint32_t size_in_bytes,uint32_t ad
     return true;
 }
 
-
-// a program must be loaded to memory before calling this function
-bool zvm_run_vm()
+bool decode_and_execute(int32_t instruction, int32_t pc)
 {
-    bool running = true;
-    while (running) {
-
-
-        // Get the current program counter (PC)
-        int32_t pc = theVM->REGS[EZVM_Reg_PC];
-
-        // Check if the PC is within the valid program memory range
-        if (pc < 0 || pc >= MAX_PROG_MEM_SIZE) {
-            zvm_set_panic("PC out of range");
-            return false;
-        }
-
-        // Read the next instruction from memory
-        int32_t instruction = theVM->prog_memory[pc];
-
-        // Increment the PC to point to the next instruction
-        theVM->REGS[EZVM_Reg_PC]++;
-
         // Decode and execute the instruction
         switch (instruction) {
             case EZVM_NOP:
@@ -164,11 +159,72 @@ bool zvm_run_vm()
                 theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
             }
             break;
+            case EZVM_JMPI:
+            {
+               int32_t addr = theVM->prog_memory[pc + 1];
+               if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
+                   zvm_set_panic("JMPI out of range");
+                   return false;
+               }
+               theVM->REGS[EZVM_Reg_PC] = addr; 
+            }
+            case EZVM_CMPI:
+            {
+                int32_t reg = theVM->prog_memory[pc + 1];
+                int32_t val = theVM->prog_memory[pc + 2];
+                update_status_reg(theVM->REGS[reg] - val );
+                theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
+            }
+            break;
+            case EZVM_CMPR:
+            {
+                int32_t reg1 = theVM->prog_memory[pc + 1];
+                int32_t reg2 = theVM->prog_memory[pc + 2];
+                if(reg1 < 0 || reg1 >= EZVM_Reg_Last)
+                    zvm_set_panic("CMPR register number of range");
+                if(reg2 < 0 || reg2 >= EZVM_Reg_Last)
+                    zvm_set_panic("CMPR register number of range");
+                update_status_reg(theVM->REGS[reg1] - theVM->REGS[reg2] );
+                theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
+            }
+            break;
+            case EZVM_JL:
+            {
+                uint32_t addr = theVM->prog_memory[pc + 1];
+                if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
+                    zvm_set_panic("JL out of range");
+                    return false;
+                }
+                if(theVM->REGS[EZVM_Reg_S] < 0){
+                    theVM->REGS[EZVM_Reg_PC] = addr;
+                }
+                else
+                    theVM->REGS[EZVM_Reg_PC] += 1;
+
+            }
+            break;
+            case EZVM_JG:
+            {
+                int32_t addr = theVM->prog_memory[pc + 1];
+                if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
+                    zvm_set_panic("JG out of range");
+                    return false;
+                }
+                if(theVM->REGS[EZVM_Reg_S] > 0){
+                    theVM->REGS[EZVM_Reg_PC] = addr;
+                }       
+                else
+                    theVM->REGS[EZVM_Reg_PC] += 1;  
+                
+            }        
+            break;
             case EZVM_MOVI:
+            {
                 int32_t reg = theVM->prog_memory[pc + 1];
                 int32_t val = theVM->prog_memory[pc + 2];
                 theVM->REGS[reg] = val;
                 theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
+            }
             break;
             case EZVM_SYSCALL:
             {
@@ -176,12 +232,58 @@ bool zvm_run_vm()
                 call_bios_func(syscall);
                 theVM->REGS[EZVM_Reg_PC] += 1; // Increment PC to skip operand
                 
-            }    
+            }   
+            break;
+            case EZVM_PUSH:
+            {
+                int32_t reg = theVM->prog_memory[pc + 1];
+                int val = theVM->REGS[reg];
+                theVM->stack[theVM->REGS[EZVM_Reg_SP]] = val;
+                theVM->REGS[EZVM_Reg_SP] += 1;
+                theVM->REGS[EZVM_Reg_PC] += 1; // Increment PC to skip operand
+            }
+            case EZVM_POP:
+            {
+                if(theVM->REGS[EZVM_Reg_SP] == 0){
+                    zvm_set_panic("Stack underflow");
+                    return false;
+                }
+                int32_t reg = theVM->prog_memory[pc + 1];
+                int val = theVM->REGS[reg];
+                theVM->REGS[reg] = theVM->stack[theVM->REGS[EZVM_Reg_SP]-1];
+                theVM->REGS[EZVM_Reg_SP] -= 1;
+                theVM->REGS[EZVM_Reg_PC] += 1; // Increment PC to skip operand    
+            }
             break;
             default:
-                // Handle unknown instruction
+                zvm_set_panic("Unknown instruction!");
+                printf("DEBUG:Instruction:%d\n",instruction);
                 return false;
         }
+    return true;
+}
+// a program must be loaded to memory before calling this function
+bool zvm_run_vm()
+{
+    bool running = true;
+    while (running) {
+
+
+        // Get the current program counter (PC)
+        int32_t pc = theVM->REGS[EZVM_Reg_PC];
+
+        // Check if the PC is within the valid program memory range
+        if (pc < 0 || pc >= MAX_PROG_MEM_SIZE) {
+            zvm_set_panic("PC out of range");
+            return false;
+        }
+
+        // Read the next instruction from memory
+        int32_t instruction = theVM->prog_memory[pc];
+        // Increment the PC to point to the next instruction
+        theVM->REGS[EZVM_Reg_PC]++;
+        bool status = decode_and_execute(instruction, pc);
+
         usleep(CPU_TICK_DELAY);
         // check if the program should be terminated
         if(theVM->panic == true) 
@@ -198,6 +300,7 @@ bool zvm_run_vm()
         logging_log("Program finished gracefully.\n");
 
     }
+    dump_regs();
     return true;
 }
 

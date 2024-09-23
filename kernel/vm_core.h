@@ -23,6 +23,7 @@ typedef enum EZVM_Regs {
 
 #define PROG_MEM_OFFET 0
 #define MAX_PROG_MEM_SIZE  1000000 // 1M 32bit words => 4MB program memory (includes also data)
+#define MAX_STACK_SIZE 1000
 #define MAX_SYSCALL_SIZE 1000
 #define VIDEO_MEM_OFFSET 1000000
 
@@ -33,6 +34,7 @@ typedef enum {
 
 typedef struct  {
     uint32_t prog_memory[MAX_PROG_MEM_SIZE];
+    uint32_t stack[MAX_STACK_SIZE];
     uint32_t bios[MAX_SYSCALL_SIZE];
     int32_t REGS[EZVM_Reg_Last];
     uint32_t *video_memory; // allocated (possibly) by video driver

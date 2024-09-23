@@ -8,10 +8,13 @@ expects that R0 contains the address of the string to be printed and R1 contains
 #include <stdio.h>
 extern ZVM* theVM;
 #include "logging.h"
+
 /* 
 Bios functions Memory map
 0x0 -> reserved
 0x1 -> bios_call_print()
+0x2 -> bios_call_end_program()
+
 */
 void (*bios_functions[])(void)={0,bios_call_print,bios_call_end_program};
 
