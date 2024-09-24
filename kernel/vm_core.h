@@ -22,7 +22,7 @@ typedef enum EZVM_Regs {
 }EZVM_Regs;
 
 #define PROG_MEM_OFFET 0
-#define MAX_PROG_MEM_SIZE  1000000 // 1M 32bit words => 4MB program memory (includes also data)
+#define MAX_PROG_MEM_SIZE  1000000 // 1M 32bit words => 4MB  memory (includes also data)
 #define MAX_STACK_SIZE 1000
 #define MAX_SYSCALL_SIZE 1000
 #define VIDEO_MEM_OFFSET 1000000

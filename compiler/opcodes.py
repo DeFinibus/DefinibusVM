@@ -1,6 +1,4 @@
-#ifndef __INSTR__SET_H
-#define __INSTR__SET_H
-
+'''
 typedef enum {
     EZVM_NOP,
     EZVM_ADD, // add Rx,Ry: add Ry to Rx. result in Rx. Sets flags
@@ -30,11 +28,37 @@ typedef enum {
     EZVM_CMP, //syntax CMP Rx,#val. compare Rx to value. sets flags
     EZVM_JG, // syntax jg #addr. jump to address in program memory if result vas greater than 0
     EZVM_JL, // syntax jl #addr. jump to address in program memory if result vas less than 0
-    EZVM_MOVRM, // syntax mov $addr,Rx. moves Rx to addr
     EZVM_OPCODEMAX
 }EZVM_InstrSet;
+'''
+opcodes_to_asm ={
+    0:{"nop"},
+    1:{"add","Rx","Ry"},
+    2:{"add","Rx","#"},
+    3:{"sub","Rx","Ry"},
+    4:{"sub","Rx","#"},
+    5:{"mul","Rx","Ry"},
+    6:{"mul","Rx","#"},
+    7:{"div","Rx","Ry"},
+    8:{"div","Rx","#"},
+    9:{"jmp","$"},
+    10:{"jmp","Rx"},
+    11:{"jsr","$"},
+    12:{"jsr","Rx"},
+    13:{"ret"},
+    14:{"cmp","Rx","#"},
+    15:{"cmp","Rx","Ry"},
+    16:{"jz","$"},
+    17:{"je","$"},
+    18:{"syscall","$"},
+    19:{"push","Rx"},
+    20:{"mov","Rx","Ry"},
+    21:{"mov","Rx","#"},
+    22:{"mov","Rx","$"},
+    23:{"pop","Rx"},
+    24:{"mov","Rx","$addr+Ry"},
+    26:{"jg","$"},
+    27:{"jl","$"},
+    28:{"mov","$","Rx"}
 
-//SYSCALL: bios functions are mapped to addresses in ZVM. 
-
-#endif
-
+}

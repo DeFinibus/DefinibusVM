@@ -24,7 +24,6 @@ Currently x86 Linux environment supported only.
 1. Build the project: `make`
 2. Run the ZVM interpreter: `./zvm` in build/bin -directory
 
-
 ## License
 
 ZVM is licensed under MIT license.
