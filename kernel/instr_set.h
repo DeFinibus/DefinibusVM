@@ -27,7 +27,7 @@ typedef enum {
     EZM_MOVM, // syntax mov Rx,$addr. Rx = memory[$addr]
     EZVM_POP, //syntax pop Rx. pops Rx from stack
     EZVM_MOVR, // syntax mov Rx,$addr+Ry 
-    EZVM_CMP, //syntax CMP Rx,#val. compare Rx to value. sets flags
+    EZVM_RESERVED, 
     EZVM_JG, // syntax jg #addr. jump to address in program memory if result vas greater than 0
     EZVM_JL, // syntax jl #addr. jump to address in program memory if result vas less than 0
     EZVM_MOVRM, // syntax mov $addr,Rx. moves Rx to addr
