@@ -15,14 +15,34 @@ See kernel/instr_set.h for opcodes. No other documentation yet about instruction
 
 * Custom bytecode execution
 * Kernel and runtime environment
+* Compiler (written in Python) that compiles custom assembler code to ZVM bytecode.
 * [Other features, e.g. memory management, threading, etc.]
+
+## Example assembler code
+
+```
+const print 1
+const exit 2
+mov R1,#0
+mov R0,hello_txt
+loop:
+syscall print
+add R1,#1
+cmp R1,#5  //repeat 5 times
+jl loop
+syscall exit //end of program
+
+hello_txt:
+0x6c6c6548,0x5a202c6f,0x77204d56,0x646c726f,0x0
+```
 
 ## Building and Running
 
 Currently x86 Linux environment supported only.
 
 1. Build the project: `make`
-2. Run the ZVM interpreter: `./zvm` in build/bin -directory
+2. Compile zvm assembler program `python3 compiler/zvm_compiler.py examples/hello.asm`
+2. Run the ZVM interpreter: `build/bin/zvm examples/hello.zvm` 
 
 ## License
 
