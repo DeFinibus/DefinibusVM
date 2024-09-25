@@ -16,7 +16,6 @@ See kernel/instr_set.h for opcodes. No other documentation yet about instruction
 * Custom bytecode execution
 * Kernel and runtime environment
 * Compiler (written in Python) that compiles custom assembler code to ZVM bytecode.
-* [Other features, e.g. memory management, threading, etc.]
 
 ## Example assembler code
 
@@ -35,6 +34,12 @@ syscall exit //end of program
 hello_txt:
 0x6c6c6548,0x5a202c6f,0x77204d56,0x646c726f,0x0
 ```
+## TODO
+
+* enhance compiler functionality (e.g. text data support)
+* VM: support for more instructions
+* VM: multitasking/threading(!)
+- ---
 
 ## Building and Running
 
