@@ -70,7 +70,8 @@ uint8_t*zvm_load_program_from_file(const char*fname, uint32_t *size)
     //TODO load program from file
     FILE *fp = fopen(fname,"rb");
     if(fp != 0) {
-        *size = fseek(fp,0,SEEK_END);
+        fseek(fp,0L,SEEK_END);
+        *size =ftell(fp);
         rewind(fp);
         uint8_t*data = malloc(*size);
         if(data == 0){
@@ -81,6 +82,9 @@ uint8_t*zvm_load_program_from_file(const char*fname, uint32_t *size)
         fclose(fp);
         return data;  
         }
+    else{
+        printf("Cannot find/open program: %s\n",fname);
+    }
     return 0;
 }
 bool zvm_load_program_to_memory(uint8_t*data, uint32_t size_in_bytes,uint32_t address)

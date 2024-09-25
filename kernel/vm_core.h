@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #define  CPU_TICK_DELAY 10 // 10 us
+#define ZVM_VERSION "0.0.0.1"
 
 typedef enum EZVM_Regs {
     EZVM_Reg_R0=0,

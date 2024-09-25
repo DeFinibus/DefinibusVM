@@ -7,13 +7,13 @@ Implements main user interface for ZVM virtual machine
 #include <stdlib.h>
 #include "kernel/vm_core.h"
 #include "kernel/logging.h"
-#define DEV_DEBUG 1
+//#define DEV_DEBUG 1
 
 #ifdef DEV_DEBUG
 
 uint32_t test_program[] ={
     21,1,0, // MOV R1,#0, 
-    21,0,18, // MOV R0,#7, which is address of data
+    21,0,18, // MOV R0,#18, which is address of data
     18,1, // SYSCALL print string
     2,1,1, // ADDI R1,1   increment R1
     14,1,5, // CMPI R1,5
@@ -31,12 +31,19 @@ int main(int argc, char *argv[])
 
 zvm_init();
 #ifndef DEV_DEBUG
+printf("ZVM Virtual Machine (c) DeFinibus 2024.\n");
+printf("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.\n");
+printf("https://github.com/Definibus/ZVM\n");
+printf("Version: %s\n",ZVM_VERSION);
 if(argc < 2) {
     printf("Usage: zvm <zvm program name>\n");
     return 1;
 }
 uint32_t prog_size;
 uint8_t *prog = zvm_load_program_from_file(argv[1], &prog_size);
+printf("Program size: %d\n",prog_size);
+
+
 #else
 printf("Running in Dev debug mode, loading test program...\n");
 uint32_t prog_size = sizeof(test_program);

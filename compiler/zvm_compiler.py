@@ -48,14 +48,12 @@ class ZVMCompiler:
 
                 if cmd_found:
                     codeline=codeline[:codeline.index(cmd_found)]
-                    print("codeline after cmd remove:",codeline)
                 instr_len = len(codeline)
                 program[program.index(instruction)] = codeline # replace with changes
 
                 address += instr_len  
         # remove lines defined in removed array from program
         for i in removed_lines:
-            print("removing:",i)
             program.remove(i)
         # second sub-pass: replace label and const references with their addresses
         print("Pass 2...")
@@ -64,16 +62,13 @@ class ZVMCompiler:
                 if op in self.labels:
                     prgidx = program.index(instruction)
                     opidx = instruction.index(op)
-                    program[prgidx][opidx]=str(self.labels[op])    
+                    program[prgidx][opidx]="#"+str(self.labels[op])    
             
-        for i in program:
-            print(i)
     
     def match(self, instruction, asm):
         mnemonic = instruction[0]
         operands = instruction[1:]
 
-        print(f"OPERANDS:{operands}")
         if len(asm) == 1:
             if mnemonic == asm[0]:
                 if not operands:
@@ -97,6 +92,8 @@ class ZVMCompiler:
                             return False, None, None
                     elif asm[1] == "$":
                         value = operands[0]
+                        if '#' in value:
+                            value = value[1:]
                         if value.startswith("0x"):
                             return True, int(value, 16), None
                         else:
@@ -212,15 +209,15 @@ class ZVMCompiler:
         found =False
         handled = False
         num_format = 10
+        print(f"Compiling instruction:{instruction}")
         for opcode, asm in self.opcodes.items():
                 res, oper1, oper2=self.match(instruction,asm)
                 if res:
-                    print(f"found instruction {instruction[0]}")
                     found = True
                     instruction_bytes.append(opcode)
-                    if oper1:
+                    if oper1!=None:
                         instruction_bytes.append(oper1)
-                    if oper2:
+                    if oper2!=None:
                         instruction_bytes.append(oper2)
                     break #we have found match
                 
@@ -248,8 +245,6 @@ class ZVMCompiler:
     def compile_program(self, program):
         # First and second pass:
         self.preprocess_source(program)
-        print("Labels")
-        print(self.labels)
         # third pass: Compile instructions
         self.bytecode = []
         data_section = False
@@ -258,6 +253,10 @@ class ZVMCompiler:
         return self.bytecode
 
 def main():
+    print("ZVM compiler v0.0.0.1 (c) DeFinibus 2024")
+    print("https://github.com/DeFinibus/zvm")
+    print("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.")
+    print()
     if len(sys.argv) != 2:
         print("Usage: python zvm_compiler.py <input_file>")
         sys.exit(1)
