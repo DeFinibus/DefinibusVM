@@ -45,6 +45,13 @@ hello_txt:
 
 Currently x86 Linux environment supported only.
 
+### Required dependencies:
+
+* build-essential package
+* Python 3 
+
+### Usage
+
 1. Build the project: `make`
 2. Compile zvm assembler program `python3 compiler/zvm_compiler.py examples/hello.asm`
 2. Run the ZVM interpreter: `build/bin/zvm examples/hello.zvm` 
