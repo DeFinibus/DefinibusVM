@@ -48,7 +48,8 @@ Currently x86 Linux environment supported only.
 ### Required dependencies:
 
 * build-essential package
-* Python 3 
+* GNU make
+* Python 3
 
 ### Usage
 

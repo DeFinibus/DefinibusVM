@@ -253,7 +253,7 @@ class ZVMCompiler:
         return self.bytecode
 
 def main():
-    print("ZVM compiler v0.0.0.1 (c) DeFinibus 2024")
+    print("ZVM compiler v0.0.0.1 (c) MAP 2024")
     print("https://github.com/DeFinibus/zvm")
     print("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.")
     print()

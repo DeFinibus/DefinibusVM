@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
 zvm_init();
 #ifndef DEV_DEBUG
-printf("ZVM Virtual Machine (c) DeFinibus 2024.\n");
+printf("ZVM Virtual Machine (c) MAP 2024.\n");
 printf("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.\n");
 printf("https://github.com/Definibus/ZVM\n");
 printf("Version: %s\n",ZVM_VERSION);
