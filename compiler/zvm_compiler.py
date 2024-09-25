@@ -64,10 +64,144 @@ class ZVMCompiler:
                 if op in self.labels:
                     prgidx = program.index(instruction)
                     opidx = instruction.index(op)
-                    program[prgidx][opidx]=self.labels[op]    
+                    program[prgidx][opidx]=str(self.labels[op])    
             
         for i in program:
             print(i)
+    
+    def match(self, instruction, asm):
+        mnemonic = instruction[0]
+        operands = instruction[1:]
+
+        print(f"OPERANDS:{operands}")
+        if len(asm) == 1:
+            if mnemonic == asm[0]:
+                if not operands:
+                    return True, None, None
+        elif len(asm) == 2:
+            if mnemonic == asm[0]:
+                if len(operands) == 1:
+                    if asm[1] == "R":
+                        if operands[0].startswith("R"):
+                            return True, int(operands[0][1:]), None
+                        else:
+                            return False, None, None
+                    elif asm[1] == "#":
+                        if operands[0].startswith("#"):
+                            value = operands[0][1:]
+                            if value.startswith("0x"):
+                                return True, int(value, 16), None
+                            else:
+                                return True, int(value), None
+                        else:
+                            return False, None, None
+                    elif asm[1] == "$":
+                        value = operands[0]
+                        if value.startswith("0x"):
+                            return True, int(value, 16), None
+                        else:
+                            return True, int(value), None
+        elif len(asm) == 3:
+            if mnemonic == asm[0]:
+                if len(operands) == 2:
+                    if asm[1] == "R":
+                        if operands[0].startswith("R"):
+                            if asm[2] == "R":
+                                if operands[1].startswith("R"):
+                                    return True, int(operands[0][1:]), int(operands[1][1:])
+                                else:
+                                    return False, None, None
+                            elif asm[2] == "#":
+                                if operands[1].startswith("#"):
+                                    value2 = operands[1][1:]
+                                    if value2.startswith("0x"):
+                                        value2 = int(value2, 16)
+                                    else:
+                                        value2 = int(value2)
+                                    return True, int(operands[0][1:]), value2
+                                else:
+                                    return False, None, None
+                            elif asm[2] == "$":
+                                value2 = operands[1]
+                                if value2.startswith("0x"):
+                                    value2 = int(value2, 16)
+                                else:
+                                    value2 = int(value2)
+                                return True, int(operands[0][1:]), value2
+                            else:
+                                return False, None, None
+                        else:
+                            return False, None, None
+                    elif asm[1] == "#":
+                        if operands[0].startswith("#"):
+                            value1 = operands[0][1:]
+                            if value1.startswith("0x"):
+                                value1 = int(value1, 16)
+                            else:
+                                value1 = int(value1)
+                            if asm[2] == "R":
+                                if operands[1].startswith("R"):
+                                    return True, value1, int(operands[1][1:])
+                                else:
+                                    return False, None, None
+                            elif asm[2] == "#":
+                                if operands[1].startswith("#"):
+                                    value2 = operands[1][1:]
+                                    if value2.startswith("0x"):
+                                        value2 = int(value2, 16)
+                                    else:
+                                        value2 = int(value2)
+                                    return True, value1, value2
+                                else:
+                                    return False, None, None
+                            elif asm[2] == "$":
+                                value2 = operands[1]
+                                if value2.startswith("0x"):
+                                    value2 = int(value2, 16)
+                                else:
+                                    value2 = int(value2)
+                                return True, value1, value2
+                            else:
+                                return False, None, None
+                    elif asm[1] == "$":
+                        value1 = operands[0]
+                        if value1.startswith("0x"):
+                            value1 = int(value1, 16)
+                        else:
+                            value1 = int(value1)
+                        if asm[2] == "R":
+                            if operands[1].startswith("R"):
+                                return True, value1, int(operands[1][1:])
+                            else:
+                                return False, None, None
+                        elif asm[2] == "#":
+                            if operands[1].startswith("#"):
+                                value2 = operands[1][1:]
+                                if value2.startswith("0x"):
+                                    value2 = int(value2, 16)
+                                else:
+                                    value2 = int(value2)
+                                return True, value1, value2
+                            else:
+                                return False, None, None
+                        elif asm[2] == "$":
+                            value2 = operands[1]
+                            if value2.startswith("0x"):
+                                value2 = int(value2, 16)
+                            else:
+                                value2 = int(value2)
+                            return True, value1, value2
+                        else:
+                            return False, None, None
+                    else:
+                        return False, None, None
+                else:
+                    return False, None, None
+            else:
+                return False, None, None
+        else:
+            return False, None, None
+        return False, None, None
     def compile_instruction(self, instruction):
         # Compile instruction
         mnemonic = instruction[0]
@@ -75,55 +209,36 @@ class ZVMCompiler:
         instruction_bytes = []
 
         # Find the opcode value that corresponds to the mnemonic
+        found =False
+        handled = False
+        num_format = 10
         for opcode, asm in self.opcodes.items():
-            if mnemonic in asm:
-                # Check if the operand types match
-                operand_match = True
-                asm_operands = list(asm - {mnemonic})
-                for operand, operand_type in zip(operands, asm_operands):
-                    if operand_type == "Rx" and not operand.startswith("R"):
-                        operand_match = False
-                        break
-                    elif operand_type == "#":
-                        if not operand.startswith("#"):
-                            operand_match = False
-                            break
-                        try:
-                            int(operand[1:], 0)
-                        except ValueError:
-                            operand_match = False
-                            break
-                    elif operand_type == "$":
-                        if not operand.startswith("$"):
-                            operand_match = False
-                            break
-                        try:
-                            int(operand[1:], 0)
-                        except ValueError:
-                            operand_match = False
-                            break
-
-                if operand_match and len(operands) == len(asm_operands):
-                    # Add the opcode value to the instruction bytes
+                res, oper1, oper2=self.match(instruction,asm)
+                if res:
+                    print(f"found instruction {instruction[0]}")
+                    found = True
                     instruction_bytes.append(opcode)
-
-                    # Compile the operands
-                    for operand, operand_type in zip(operands, asm_operands):
-                        if operand_type == "Rx":
-                            # Register operand
-                            register_number = int(operand[1:])
-                            instruction_bytes.append(register_number)
-                        elif operand_type == "#":
-                            # Immediate operand
-                            immediate_value = int(operand[1:], 0)
-                            instruction_bytes.append(immediate_value)
-                        elif operand_type == "$":
-                            # Address operand
-                            address_value = int(operand[1:], 0)
-                            instruction_bytes.append(address_value)
-
-                    break
-
+                    if oper1:
+                        instruction_bytes.append(oper1)
+                    if oper2:
+                        instruction_bytes.append(oper2)
+                    break #we have found match
+                
+  
+        if not found: #check for data
+            try:
+                num = int(instruction[0])
+                handled =True
+            except ValueError:
+                try:
+                    num = int(instruction[0], 16)
+                    num_format = 16
+                    handled =True
+                except ValueError:
+                    pass;
+            if handled:
+                for b in instruction:
+                    instruction_bytes.append(int(b,num_format))
         if not instruction_bytes:
             raise ValueError(f"Invalid instruction: {instruction}")
 
@@ -156,10 +271,13 @@ def main():
     program = [line.strip() for line in program]
     compiler = ZVMCompiler()
     bytecode = compiler.compile_program(program)
+    print("COMPILED CODE:")
+    print(bytecode)
 
     with open(output_file, 'wb') as f:
-        for byte in bytecode:
-            f.write(byte.to_bytes(4, 'little'))
-
+        for num in bytecode:
+            f.write(num.to_bytes(4, 'little'))
+    print("Program saved to file:", output_file)
 if __name__ == '__main__':
     main()
+
