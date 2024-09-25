@@ -6,88 +6,83 @@ class ZVMCompiler:
     def __init__(self):
         self.opcodes = opcodes.opcodes_to_asm
         self.labels = {}
-        self.data_labels = {}
 
-    def compile_labels(self, program):
-        # First pass: Compile labels and store their addresses
+    '''
+    preprocess_source function:
+    In this function, we want to:
+    - find addresses of labels
+    - remove labels from source code
+    - replace label references with their addresses
+    '''
+    def preprocess_source(self, program):
+        # First pass: Compile labels and constants and store their addresses, remove comments
+        
         address = 0
+        print("Pass 1...")
+        removed_lines=[]
         for instruction in program:
             if instruction=="" or instruction.startswith('#'): 
+                removed_lines.append(instruction)
+                continue
+            if instruction.startswith("const"):
+                label = instruction.split()[1] 
+                value = int(instruction.split()[2])  # Allow hex, dec, or octal
+                self.labels[label] = value
+                removed_lines.append(instruction)
                 continue
             if instruction.endswith(':'):
                 label_name = instruction[:-1]
                 self.labels[label_name] = address
+                removed_lines.append(instruction)
             else:
-                codeline = re.split(' |,',instruction)
+                # split codeline, separators any white spaces and commas
+                codeline = re.split(r'\s+|,',instruction)
                 #remove comment // from codeline
-                found = None
+                cmd_found = None
+                imm_found = None
                 for x in codeline:
-                    if x.startswith('//'):
-                        found = x
-                if found:
-                    codeline=codeline[:codeline.index(found)]
+                    if x.startswith('//'):  
+                        cmd_found = x
+                    if x.startswith('#'):
+                        imm_found = x
+
+                if cmd_found:
+                    codeline=codeline[:codeline.index(cmd_found)]
+                    print("codeline after cmd remove:",codeline)
                 instr_len = len(codeline)
+                program[program.index(instruction)] = codeline # replace with changes
 
                 address += instr_len  
+        # remove lines defined in removed array from program
+        for i in removed_lines:
+            print("removing:",i)
+            program.remove(i)
+        # second sub-pass: replace label and const references with their addresses
+        print("Pass 2...")
+        for instruction in program:
+            for op in instruction:
+                if op in self.labels:
+                    prgidx = program.index(instruction)
+                    opidx = instruction.index(op)
+                    program[prgidx][opidx]=self.labels[op]    
+            
+        for i in program:
+            print(i)
 
     def compile_instruction(self, instruction):
         # Compile instruction
         opcode, *operands = instruction.split()
+        instruction_bytes = []
+        
 
-        # Find opcode value
-        for opcode_value, asm_instructions in self.opcodes.items():
-            if opcode in asm_instructions:
-                break
-        else:
-            raise ValueError(f"Invalid opcode: {opcode}")
-
-        # Compile operands
-        compiled_operands = []
-        if opcode in ['mov', 'add', 'sub', 'mul', 'div', 'cmp']:
-            # Handle instructions with two operands
-            if len(operands) != 2:
-                raise ValueError(f"Invalid number of operands({len(operands)}) for {opcode} instruction")
-            for operand in operands:
-                if ',' in operand:
-                    # Handle register and immediate value
-                    register_name, immediate_value = operand.split(',')
-                    if register_name.upper() not in ['R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']:
-                        raise ValueError(f"Invalid register: {register_name}")
-                    register_value = ['R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'].index(register_name.upper())
-                    compiled_operands.append(register_value)
-                    if immediate_value.startswith('#'):
-                        # Immediate value
-                        value = int(immediate_value[1:], 0)  # Allow hex, dec, or octal
-                        compiled_operands.append(value)
-                    else:
-                        raise ValueError(f"Invalid immediate value: {immediate_value}")
-                elif operand.startswith('#'):
-                    # Immediate value
-                    value = int(operand[1:], 0)  # Allow hex, dec, or octal
-                    compiled_operands.append(value)
-                elif operand in self.labels:
-                    # Label reference
-                    label_address = self.labels[operand]
-                    compiled_operands.append(label_address)
-                else:
-                    # Register reference
-                    register_name = operand.upper()
-                    if register_name not in ['R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7']:
-                        raise ValueError(f"Invalid register: {register_name}")
-                    register_value = ['R0', 'R1', 'R2', 'R3', 'R4', 'R5', 'R6', 'R7'].index(register_name)
-                    compiled_operands.append(register_value)
-
-            # Assemble instruction
-            instruction_bytes = [opcode_value] + compiled_operands
-
-            return instruction_bytes
+        return instruction_bytes
 
     def compile_program(self, program):
-        # First pass: Compile labels
-        self.compile_labels(program)
+        # First and second pass:
+        self.preprocess_source(program)
         print("Labels")
         print(self.labels)
-        # Second pass: Compile instructions
+        # third pass: Compile instructions
         self.bytecode = []
         data_section = False
         for instruction in program:
