@@ -68,14 +68,67 @@ class ZVMCompiler:
             
         for i in program:
             print(i)
-
     def compile_instruction(self, instruction):
         # Compile instruction
-        opcode, *operands = instruction.split()
+        mnemonic = instruction[0]
+        operands = instruction[1:]
         instruction_bytes = []
-        
+
+        # Find the opcode value that corresponds to the mnemonic
+        for opcode, asm in self.opcodes.items():
+            if mnemonic in asm:
+                # Check if the operand types match
+                operand_match = True
+                asm_operands = list(asm - {mnemonic})
+                for operand, operand_type in zip(operands, asm_operands):
+                    if operand_type == "Rx" and not operand.startswith("R"):
+                        operand_match = False
+                        break
+                    elif operand_type == "#":
+                        if not operand.startswith("#"):
+                            operand_match = False
+                            break
+                        try:
+                            int(operand[1:], 0)
+                        except ValueError:
+                            operand_match = False
+                            break
+                    elif operand_type == "$":
+                        if not operand.startswith("$"):
+                            operand_match = False
+                            break
+                        try:
+                            int(operand[1:], 0)
+                        except ValueError:
+                            operand_match = False
+                            break
+
+                if operand_match and len(operands) == len(asm_operands):
+                    # Add the opcode value to the instruction bytes
+                    instruction_bytes.append(opcode)
+
+                    # Compile the operands
+                    for operand, operand_type in zip(operands, asm_operands):
+                        if operand_type == "Rx":
+                            # Register operand
+                            register_number = int(operand[1:])
+                            instruction_bytes.append(register_number)
+                        elif operand_type == "#":
+                            # Immediate operand
+                            immediate_value = int(operand[1:], 0)
+                            instruction_bytes.append(immediate_value)
+                        elif operand_type == "$":
+                            # Address operand
+                            address_value = int(operand[1:], 0)
+                            instruction_bytes.append(address_value)
+
+                    break
+
+        if not instruction_bytes:
+            raise ValueError(f"Invalid instruction: {instruction}")
 
         return instruction_bytes
+
 
     def compile_program(self, program):
         # First and second pass:
@@ -86,13 +139,6 @@ class ZVMCompiler:
         self.bytecode = []
         data_section = False
         for instruction in program:
-            if instruction.startswith('data:'):
-                data_section = True
-            elif data_section:
-                # Data section
-                value = int(instruction, 0)  # Allow hex, dec, or octal
-                self.bytecode.append(value)
-            elif not instruction.endswith(':'):
                 self.bytecode.extend(self.compile_instruction(instruction))
         return self.bytecode
 
