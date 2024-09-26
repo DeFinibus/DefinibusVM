@@ -259,6 +259,27 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
                 theVM->REGS[EZVM_Reg_PC] += 1; // Increment PC to skip operand    
             }
             break;
+            case EZVM_JSR:{
+                int32_t addr = theVM->prog_memory[pc + 1];
+                if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
+                    zvm_set_panic("JSR out of range");
+                    return false;
+                }
+                theVM->stack[theVM->REGS[EZVM_Reg_SP]] = theVM->REGS[EZVM_Reg_PC] + 1;
+                theVM->REGS[EZVM_Reg_PC] = addr;
+                theVM->REGS[EZVM_Reg_SP] += 1;
+            }
+            break;
+            case EZVM_RET:
+            {
+                if(theVM->REGS[EZVM_Reg_SP] == 0){
+                    zvm_set_panic("Stack underflow");
+                    return false;
+                }
+                theVM->REGS[EZVM_Reg_PC] = theVM->stack[theVM->REGS[EZVM_Reg_SP]-1];
+                theVM->REGS[EZVM_Reg_SP] -= 1;
+            }
+            break;
             default:
                 zvm_set_panic("Unknown instruction!");
                 printf("DEBUG:Instruction:%d\n",instruction);
