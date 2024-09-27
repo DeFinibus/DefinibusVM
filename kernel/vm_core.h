@@ -44,6 +44,7 @@ typedef struct  {
     CPUMode mode;
     bool panic;
     bool debug;
+    bool running;
 }ZVM;
 
 // -- ZVM API functions --
@@ -54,6 +55,11 @@ bool zvm_run_vm(); // program must be loaded before calling this function
 void zvm_set_mode(CPUMode);
 void zvm_single_step();
 void zvm_set_panic(const char *msg);
-int32_t zvm_init(void);
+int32_t zvm_init(CPUMode);
+void zvm_warm_reset(CPUMode);
+bool zvm_handle_next_instruction();
+void dump_regs();
+
+
 
 #endif

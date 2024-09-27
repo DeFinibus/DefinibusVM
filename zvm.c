@@ -5,6 +5,7 @@ Implements main user interface for ZVM virtual machine
 */
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "kernel/vm_core.h"
 #include "kernel/logging.h"
 //#define DEV_DEBUG 1
@@ -25,23 +26,32 @@ uint32_t test_program[] ={
 };
 
 #endif
-
+extern ZVM* theVM;
 int main(int argc, char *argv[])
 {
 
-zvm_init();
 #ifndef DEV_DEBUG
 printf("ZVM Virtual Machine (c) MAP 2024.\n");
 printf("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.\n");
 printf("https://github.com/Definibus/ZVM\n");
 printf("Version: %s\n",ZVM_VERSION);
+CPUMode cfg_cpu_mode = CPUMode_Continuous;
 if(argc < 2) {
     printf("Usage: zvm <zvm program name>\n");
     return 1;
 }
+if(argc>2) {
+    if(strcmp("--debug",argv[2]) == 0)
+    {
+        cfg_cpu_mode= CPUMode_SingleStep;
+    }
+}
+
+zvm_init(cfg_cpu_mode);
 uint32_t prog_size;
 uint8_t *prog = zvm_load_program_from_file(argv[1], &prog_size);
-printf("Program size: %d\n",prog_size);
+if(prog!=0)
+    printf("Program size: %d\n",prog_size);
 
 
 #else
@@ -51,9 +61,41 @@ uint8_t *prog = (uint8_t*)test_program;
 logging_log("Program size: %d\n",prog_size);
 #endif
 
-if(prog != 0){
-    bool status = zvm_load_program_to_memory(prog, prog_size, 0);
-    printf("Program loaded to memory: %d\n",status);
+if(prog == 0)
+{
+    printf("Cannot load program: %s\n",argv[1]);
+    return 1;
+}
+
+bool status = zvm_load_program_to_memory(prog, prog_size, 0);
+if(status == false)
+{
+    printf("Cannot load program: %s\n to memory.",argv[1]);
+    return 1;
+}
+
+printf("Program loaded to memory: %d\n",status);
+if(theVM->mode == CPUMode_SingleStep) {
+    printf("Running in Debug / single step mode.\n");
+    while (theVM->running) {
+        zvm_run_vm();
+        printf("Press Enter to step, or type 'q',r' for registers, to quit: ");
+        char c;
+        if((c = getchar()) == 'q') {
+            theVM->running = false;
+        }    
+        else if(c == 'r') {
+            dump_regs();
+        }
+        else if(c == '\n') {
+            // do nothing, just step again
+        } else {
+            printf("Invalid input\n");
+        }
+        dump_regs();
+    }
+    printf("Program Ended.\n");
+} else {
     zvm_run_vm();
 }
 

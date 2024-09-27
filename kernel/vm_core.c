@@ -46,7 +46,7 @@ void dump_regs()
         theVM->REGS[EZVM_Reg_PC],
         theVM->REGS[EZVM_Reg_S]);
 }
-int32_t zvm_init(void)
+int32_t zvm_init(CPUMode m)
 {
     logging_init();
     theVM = (ZVM*)malloc(sizeof(ZVM));
@@ -61,10 +61,22 @@ int32_t zvm_init(void)
     theVM->video_memory = 0; // not in use by default. Initialized by (possible) video driver
     theVM->debug = true;
     theVM->panic = false;
+    theVM->running = true;
+    theVM->mode = m;
     theVM->terminate_program = false;
     return 1;
 }
-
+void zvm_warm_reset(CPUMode m)
+{
+    memset(theVM->REGS,0,sizeof(theVM->REGS));
+    memset(theVM->stack,0,sizeof(theVM->stack));
+    theVM->video_memory = 0; // not in use by default. Initialized by (possible) video driver
+    theVM->running = true;
+    theVM->debug = true;
+    theVM->panic = false;
+    theVM->terminate_program = false;
+    theVM->mode = m;
+}
 uint8_t*zvm_load_program_from_file(const char*fname, uint32_t *size)
 {
     //TODO load program from file
@@ -241,7 +253,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             case EZVM_PUSH:
             {
                 int32_t reg = theVM->prog_memory[pc + 1];
-                int val = theVM->REGS[reg];
+                int32_t val = theVM->REGS[reg];
                 theVM->stack[theVM->REGS[EZVM_Reg_SP]] = val;
                 theVM->REGS[EZVM_Reg_SP] += 1;
                 theVM->REGS[EZVM_Reg_PC] += 1; // Increment PC to skip operand
@@ -288,44 +300,72 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
     return true;
 }
 // a program must be loaded to memory before calling this function
+
+bool zvm_handle_next_instruction()
+{
+    // Get the current program counter (PC)
+    int32_t pc = theVM->REGS[EZVM_Reg_PC];
+
+    // Check if the PC is within the valid program memory range
+    if (pc < 0 || pc >= MAX_PROG_MEM_SIZE) {
+        zvm_set_panic("PC out of range");
+        theVM->running = false;
+        return false;
+    }
+
+    // Read the next instruction from memory
+    int32_t instruction = theVM->prog_memory[pc];
+    // Increment the PC to point to the next instruction
+    theVM->REGS[EZVM_Reg_PC]++;
+    bool status = decode_and_execute(instruction, pc);
+    return status;
+}
+
 bool zvm_run_vm()
 {
-    bool running = true;
-    while (running) {
+    if(theVM->running == false){
+        return false;
+    }
+    if(theVM->mode == CPUMode_Continuous)
+    {
+        while (theVM->running) {
 
+            bool result = zvm_handle_next_instruction();
+            if(result == false)
+                theVM->running = false;
+        
 
-        // Get the current program counter (PC)
-        int32_t pc = theVM->REGS[EZVM_Reg_PC];
-
-        // Check if the PC is within the valid program memory range
-        if (pc < 0 || pc >= MAX_PROG_MEM_SIZE) {
-            zvm_set_panic("PC out of range");
-            return false;
+            usleep(CPU_TICK_DELAY);
+            // check if the program should be terminated
+            if(theVM->panic == true) 
+                theVM->running = false;
+            if(theVM->terminate_program == true)
+                theVM->running = false;
         }
-
-        // Read the next instruction from memory
-        int32_t instruction = theVM->prog_memory[pc];
-        // Increment the PC to point to the next instruction
-        theVM->REGS[EZVM_Reg_PC]++;
-        bool status = decode_and_execute(instruction, pc);
-
-        usleep(CPU_TICK_DELAY);
-        // check if the program should be terminated
-        if(theVM->panic == true) 
-            running = false;
-        if(theVM->terminate_program == true)
-            running = false;
     }
-    if(theVM->panic == true)
-    {
-        logging_log("Program terminated abnormally.\n");
+    else { // single step
+            bool result = zvm_handle_next_instruction();
+            if(result == false)
+                theVM->running = false;
+            // check if the program should be terminated
+            if(theVM->panic == true) 
+                theVM->running = false;
+            if(theVM->terminate_program == true)
+                theVM->running = false;
+ 
     }
-    else
-    {
-        logging_log("Program finished gracefully.\n");
+    if(theVM->running == false) {
+        if(theVM->panic == true)
+        {
+            logging_log("Program terminated abnormally.\n");
+        }
+        else
+        {
+            logging_log("Program finished gracefully.\n");
 
+        }
+        dump_regs();
     }
-    dump_regs();
     return true;
 }
 

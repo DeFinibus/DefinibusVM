@@ -15,12 +15,13 @@ See kernel/instr_set.h for opcodes. No other documentation yet about instruction
 
 * Custom bytecode execution
 * Kernel and runtime environment
+  * continuous or single step running mode
 * Compiler (written in Python) that compiles custom assembler code to ZVM bytecode.
 
 ## Example assembler code
 
 ```
-c# Hello asm
+# Hello asm
 
 const print 1
 const exit 2
@@ -49,6 +50,8 @@ hello2_txt:
 ## TODO
 
 * enhance compiler functionality (e.g. text data support)
+* Better debugger
+* Disassembler
 * VM: support for more instructions
 * VM: multitasking/threading(!)
 - ---
