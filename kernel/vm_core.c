@@ -31,6 +31,16 @@ static inline void update_status_reg(int32_t result)
     else
        theVM->REGS[EZVM_Reg_S] = 1;
 }
+void dump_memory(int32_t addr_start, int32_t addr_end)
+{
+    int32_t addr = addr_start;
+    while(addr < addr_end)
+    {
+        printf("%08X: %08X\n",addr, theVM->prog_memory[addr]);
+        addr++;
+    }
+}
+
 void dump_regs()
 {
     logging_log("R0=%d R1=%d R2=%d R3=%d R4=%d R5=%d R6=%d R7=%d SP=%d PC=%d S=%d\n",

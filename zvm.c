@@ -79,17 +79,33 @@ if(theVM->mode == CPUMode_SingleStep) {
     printf("Running in Debug / single step mode.\n");
     while (theVM->running) {
         zvm_run_vm();
-        printf("Press Enter to step, or type 'q',r' for registers, to quit: ");
-        char c;
-        if((c = getchar()) == 'q') {
+        printf("Press Enter to step, type r' for registers,'mem <addr> <addr>' for mem dump, 'q' to quit: ");
+        char input[10];
+        fgets(input, 10, stdin);
+        if( strncmp(input,"q",1) == 0) {
             theVM->running = false;
         }    
-        else if(c == 'r') {
+        else if( strncmp(input,"r",1) == 0) {
             dump_regs();
         }
-        else if(c == '\n') {
+        else if(strcmp(input,"\n") == 0) {
             // do nothing, just step again
-        } else {
+        } 
+        else if(strncmp(input,"mem ",4) == 0) {
+             // Parse memory address range from input
+            char* addr_str = input + 4;
+            char* end_str = strchr(addr_str, ' ');
+            if (end_str == NULL) {
+                printf("Invalid memory address range\n");
+                continue;
+            }
+            uint32_t addr_start = strtoul(addr_str, NULL, 16);
+            uint32_t addr_end = strtoul(end_str + 1, NULL, 16);
+
+            // Dump memory contents
+            dump_memory(addr_start, addr_end);
+        }
+        else {
             printf("Invalid input\n");
         }
         dump_regs();

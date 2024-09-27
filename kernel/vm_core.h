@@ -59,6 +59,8 @@ int32_t zvm_init(CPUMode);
 void zvm_warm_reset(CPUMode);
 bool zvm_handle_next_instruction();
 void dump_regs();
+void dump_memory(int32_t addr_start, int32_t addr_end);
+
 
 
 

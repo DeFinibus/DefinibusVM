@@ -26,5 +26,6 @@ $(OBJ_DIR)/zvm.o: zvm.c
 	$(CC) $(CFLAGS) -c $< -o $@
 
 clean:
-	rm -f $(BUILD_DIR)/*
+	rm -f $(OBJ_DIR)/*
+	rm -f $(BIN_DIR)/*
 
