@@ -16,6 +16,7 @@ See kernel/instr_set.h for opcodes. No other documentation yet about instruction
 * Custom bytecode execution
 * Kernel and runtime environment
   * continuous or single step running mode
+  * memory dump with disassembly in single step mode
 * Compiler (written in Python) that compiles custom assembler code to ZVM bytecode.
 
 ## Example assembler code
