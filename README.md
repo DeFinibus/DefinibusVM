@@ -1,13 +1,13 @@
-# ZVM
+# VM
 
-ZVM is a custom virtual machine designed to execute bytecode.
+DefinibusVM is a custom virtual machine designed to execute bytecode.
 
 ## Overview
 
-ZVM is a software implementation of a virtual machine that provides a platform for executing bytecode. It includes a kernel, runtime environment, and other supporting components.
+DefinibusVM is a software implementation of a virtual machine that provides a platform for executing bytecode. It includes a kernel, runtime environment, and other supporting components.
 Made just for fun and maybe also for learning purposes, hopefully.
 
-ZVM "CPU" has 8 general purpose registers, R0-R7, Program Counter(PC), stack pointer(SP) and status
+VM "CPU" has 8 general purpose registers, R0-R7, Program Counter(PC), stack pointer(SP) and status
 register. 
 See kernel/instr_set.h for opcodes. No other documentation yet about instruction set.
 
@@ -17,7 +17,7 @@ See kernel/instr_set.h for opcodes. No other documentation yet about instruction
 * Kernel and runtime environment
   * continuous or single step running mode
   * memory dump with disassembly in single step mode
-* Compiler (written in Python) that compiles custom assembler code to ZVM bytecode.
+* Compiler (written in Python) that compiles custom assembler code to VM bytecode.
 
 ## Example assembler code
 
@@ -71,13 +71,13 @@ Currently x86 Linux environment supported only.
 ### Usage
 
 1. Build the project: `make`
-2. Compile zvm assembler program `python3 compiler/zvm_compiler.py examples/hello.asm`
-3. Run the ZVM VM: `build/bin/zvm examples/hello.zvm` 
-4. Run in debug mode: `build/bin/zvm examples/hello.zvm --debug`
+2. Compile vm assembler program `python3 compiler/vm_compiler.py examples/hello.asm`
+3. Run the VM : `build/bin/dfbvm examples/hello.dvm` 
+4. Run in debug mode: `build/bin/dfbvm examples/hello.dvm --debug`
 
 Debug mode enables single stepping of instructions and memory dump with disassembly.
 memory dump can be invoked with following command: `mem [addr_start] [addr_end]`
 
 ## License
 
-ZVM is licensed under MIT license.
+DefinibusVM is licensed under MIT license.

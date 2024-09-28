@@ -6,7 +6,7 @@ expects that R0 contains the address of the string to be printed and R1 contains
 #include "vm_core.h"
 #include "vm_bios.h"
 #include <stdio.h>
-extern ZVM* theVM;
+extern VM* theVM;
 #include "logging.h"
 
 /* 
@@ -28,14 +28,14 @@ bool call_bios_func(int32_t func_addr)
 {
     if(func_addr > sizeof(bios_functions)){
         printf("Invalid address:%d\n",func_addr);
-        zvm_set_panic("Invalid BIOS function address");
+        vm_set_panic("Invalid BIOS function address");
         return false;
     }
     void(*func) = bios_functions[func_addr];
     if(func == 0)
     {
         printf("Invalid address:%d\n",func_addr);
-        zvm_set_panic("Invalid BIOS function address");
+        vm_set_panic("Invalid BIOS function address");
         return false;
     }
     (*bios_functions[func_addr])();

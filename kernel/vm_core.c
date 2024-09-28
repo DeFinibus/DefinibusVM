@@ -21,7 +21,7 @@ BootLoader then checks if there is a program to execute (boot vector in ZVM memo
 
 */
 const int empty_pattern = 0xfeedabba;
-ZVM *theVM=0;
+VM *theVM=0;
 
 static inline void update_status_reg(int32_t result)
 {
@@ -74,10 +74,10 @@ void dump_regs()
         theVM->REGS[EZVM_Reg_PC],
         theVM->REGS[EZVM_Reg_S]);
 }
-int32_t zvm_init(CPUMode m)
+int32_t vm_init(CPUMode m)
 {
     logging_init();
-    theVM = (ZVM*)malloc(sizeof(ZVM));
+    theVM = (VM*)malloc(sizeof(VM));
     if(theVM == NULL) {
         
         exit(1);
@@ -94,7 +94,7 @@ int32_t zvm_init(CPUMode m)
     theVM->terminate_program = false;
     return 1;
 }
-void zvm_warm_reset(CPUMode m)
+void vm_warm_reset(CPUMode m)
 {
     memset(theVM->REGS,0,sizeof(theVM->REGS));
     memset(theVM->stack,0,sizeof(theVM->stack));
@@ -105,7 +105,7 @@ void zvm_warm_reset(CPUMode m)
     theVM->terminate_program = false;
     theVM->mode = m;
 }
-uint8_t*zvm_load_program_from_file(const char*fname, uint32_t *size)
+uint8_t*vm_load_program_from_file(const char*fname, uint32_t *size)
 {
     //TODO load program from file
     FILE *fp = fopen(fname,"rb");
@@ -127,7 +127,7 @@ uint8_t*zvm_load_program_from_file(const char*fname, uint32_t *size)
     }
     return 0;
 }
-bool zvm_load_program_to_memory(uint8_t*data, uint32_t size_in_bytes,uint32_t address)
+bool vm_load_program_to_memory(uint8_t*data, uint32_t size_in_bytes,uint32_t address)
 {
     uint32_t *prog_start = theVM->prog_memory + address;
     uint32_t idx = 0;
@@ -207,7 +207,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             {
                int32_t addr = theVM->prog_memory[pc + 1];
                if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
-                   zvm_set_panic("JMPI out of range");
+                   vm_set_panic("JMPI out of range");
                    return false;
                }
                theVM->REGS[EZVM_Reg_PC] = addr; 
@@ -225,9 +225,9 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
                 int32_t reg1 = theVM->prog_memory[pc + 1];
                 int32_t reg2 = theVM->prog_memory[pc + 2];
                 if(reg1 < 0 || reg1 >= EZVM_Reg_Last)
-                    zvm_set_panic("CMPR register number of range");
+                    vm_set_panic("CMPR register number of range");
                 if(reg2 < 0 || reg2 >= EZVM_Reg_Last)
-                    zvm_set_panic("CMPR register number of range");
+                    vm_set_panic("CMPR register number of range");
                 update_status_reg(theVM->REGS[reg1] - theVM->REGS[reg2] );
                 theVM->REGS[EZVM_Reg_PC] += 2; // Increment PC to skip operands
             }
@@ -236,7 +236,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             {
                 uint32_t addr = theVM->prog_memory[pc + 1];
                 if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
-                    zvm_set_panic("JL out of range");
+                    vm_set_panic("JL out of range");
                     return false;
                 }
                 if(theVM->REGS[EZVM_Reg_S] < 0){
@@ -251,7 +251,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             {
                 int32_t addr = theVM->prog_memory[pc + 1];
                 if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
-                    zvm_set_panic("JG out of range");
+                    vm_set_panic("JG out of range");
                     return false;
                 }
                 if(theVM->REGS[EZVM_Reg_S] > 0){
@@ -289,7 +289,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             case EZVM_POP:
             {
                 if(theVM->REGS[EZVM_Reg_SP] == 0){
-                    zvm_set_panic("Stack underflow");
+                    vm_set_panic("Stack underflow");
                     return false;
                 }
                 int32_t reg = theVM->prog_memory[pc + 1];
@@ -302,7 +302,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             case EZVM_JSR:{
                 int32_t addr = theVM->prog_memory[pc + 1];
                 if(addr < 0 || addr >= MAX_PROG_MEM_SIZE){
-                    zvm_set_panic("JSR out of range");
+                    vm_set_panic("JSR out of range");
                     return false;
                 }
                 theVM->stack[theVM->REGS[EZVM_Reg_SP]] = theVM->REGS[EZVM_Reg_PC] + 1;
@@ -313,7 +313,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             case EZVM_RET:
             {
                 if(theVM->REGS[EZVM_Reg_SP] == 0){
-                    zvm_set_panic("Stack underflow");
+                    vm_set_panic("Stack underflow");
                     return false;
                 }
                 theVM->REGS[EZVM_Reg_PC] = theVM->stack[theVM->REGS[EZVM_Reg_SP]-1];
@@ -321,7 +321,7 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
             }
             break;
             default:
-                zvm_set_panic("Unknown instruction!");
+                vm_set_panic("Unknown instruction!");
                 printf("DEBUG:Instruction:%d\n",instruction);
                 return false;
         }
@@ -329,14 +329,14 @@ bool decode_and_execute(int32_t instruction, int32_t pc)
 }
 // a program must be loaded to memory before calling this function
 
-bool zvm_handle_next_instruction()
+bool vm_handle_next_instruction()
 {
     // Get the current program counter (PC)
     int32_t pc = theVM->REGS[EZVM_Reg_PC];
 
     // Check if the PC is within the valid program memory range
     if (pc < 0 || pc >= MAX_PROG_MEM_SIZE) {
-        zvm_set_panic("PC out of range");
+        vm_set_panic("PC out of range");
         theVM->running = false;
         return false;
     }
@@ -349,7 +349,7 @@ bool zvm_handle_next_instruction()
     return status;
 }
 
-bool zvm_run_vm()
+bool vm_run_vm()
 {
     if(theVM->running == false){
         return false;
@@ -358,7 +358,7 @@ bool zvm_run_vm()
     {
         while (theVM->running) {
 
-            bool result = zvm_handle_next_instruction();
+            bool result = vm_handle_next_instruction();
             if(result == false)
                 theVM->running = false;
         
@@ -372,7 +372,7 @@ bool zvm_run_vm()
         }
     }
     else { // single step
-            bool result = zvm_handle_next_instruction();
+            bool result = vm_handle_next_instruction();
             if(result == false)
                 theVM->running = false;
             // check if the program should be terminated
@@ -397,7 +397,7 @@ bool zvm_run_vm()
     return true;
 }
 
-void zvm_set_panic(const char*msg){
+void vm_set_panic(const char*msg){
     if(theVM->panic == true)
         return;
     theVM->panic = true;
@@ -411,7 +411,7 @@ void zvm_set_mode(CPUMode m)
     theVM->mode = m;
 }
 
-void zvm_single_step()
+void vm_single_step()
 {
     if(theVM->mode != CPUMode_SingleStep) // stepping only in continuous mode
     {

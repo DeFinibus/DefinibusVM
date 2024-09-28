@@ -2,7 +2,7 @@ import re
 import opcodes
 import sys
 import re
-class ZVMCompiler:
+class VMCompiler:
     def __init__(self):
         self.opcodes = opcodes.opcodes_to_asm
         self.labels = {}
@@ -253,8 +253,8 @@ class ZVMCompiler:
         return self.bytecode
 
 def main():
-    print("ZVM compiler v0.0.0.1 (c) MAP 2024")
-    print("https://github.com/DeFinibus/zvm")
+    print("DefinibusVM compiler v0.0.0.1 (c) MAP 2024")
+    print("https://github.com/DeFinibus/DefinibusVM")
     print("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.")
     print()
     if len(sys.argv) != 2:
@@ -262,7 +262,7 @@ def main():
         sys.exit(1)
 
     input_file = sys.argv[1]
-    output_file = input_file.split('.')[0] + '.zvm'
+    output_file = input_file.split('.')[0] + '.dvm'
 
     with open(input_file, 'r') as f:
         program = f.readlines()

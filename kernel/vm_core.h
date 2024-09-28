@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #define  CPU_TICK_DELAY 10 // 10 us
-#define ZVM_VERSION "0.0.0.1"
+#define VM_VERSION "0.0.0.1"
 
 typedef enum EZVM_Regs {
     EZVM_Reg_R0=0,
@@ -45,19 +45,19 @@ typedef struct  {
     bool panic;
     bool debug;
     bool running;
-}ZVM;
+}VM;
 
 // -- ZVM API functions --
-uint8_t *zvm_load_program_from_file(const char*fname, uint32_t *size);
-bool zvm_load_program_to_memory(uint8_t*data, uint32_t size_in_bytes,uint32_t address);
-bool zvm_save_memory_to_file(const char *fname,uint32_t address,uint32_t length);
-bool zvm_run_vm(); // program must be loaded before calling this function
-void zvm_set_mode(CPUMode);
-void zvm_single_step();
-void zvm_set_panic(const char *msg);
-int32_t zvm_init(CPUMode);
-void zvm_warm_reset(CPUMode);
-bool zvm_handle_next_instruction();
+uint8_t *vm_load_program_from_file(const char*fname, uint32_t *size);
+bool vm_load_program_to_memory(uint8_t*data, uint32_t size_in_bytes,uint32_t address);
+bool vm_save_memory_to_file(const char *fname,uint32_t address,uint32_t length);
+bool vm_run_vm(); // program must be loaded before calling this function
+void vm_set_mode(CPUMode);
+void vm_single_step();
+void vm_set_panic(const char *msg);
+int32_t vm_init(CPUMode);
+void vm_warm_reset(CPUMode);
+bool vm_handle_next_instruction();
 void dump_regs();
 void dump_memory(int32_t addr_start, int32_t addr_end);
 

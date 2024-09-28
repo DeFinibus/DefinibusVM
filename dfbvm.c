@@ -26,7 +26,7 @@ uint32_t test_program[] ={
 };
 
 #endif
-extern ZVM* theVM;
+extern VM* theVM;
 int main(int argc, char *argv[])
 {
 
@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
 printf("ZVM Virtual Machine (c) MAP 2024.\n");
 printf("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.\n");
 printf("https://github.com/Definibus/ZVM\n");
-printf("Version: %s\n",ZVM_VERSION);
+printf("Version: %s\n",VM_VERSION);
 CPUMode cfg_cpu_mode = CPUMode_Continuous;
 if(argc < 2) {
     printf("Usage: zvm <zvm program name>\n");
@@ -47,9 +47,9 @@ if(argc>2) {
     }
 }
 
-zvm_init(cfg_cpu_mode);
+vm_init(cfg_cpu_mode);
 uint32_t prog_size;
-uint8_t *prog = zvm_load_program_from_file(argv[1], &prog_size);
+uint8_t *prog = vm_load_program_from_file(argv[1], &prog_size);
 if(prog!=0)
     printf("Program size: %d\n",prog_size);
 
@@ -67,7 +67,7 @@ if(prog == 0)
     return 1;
 }
 
-bool status = zvm_load_program_to_memory(prog, prog_size, 0);
+bool status = vm_load_program_to_memory(prog, prog_size, 0);
 if(status == false)
 {
     printf("Cannot load program: %s\n to memory.",argv[1]);
@@ -78,7 +78,7 @@ printf("Program loaded to memory: %d\n",status);
 if(theVM->mode == CPUMode_SingleStep) {
     printf("Running in Debug / single step mode.\n");
     while (theVM->running) {
-        zvm_run_vm();
+        vm_run_vm();
         printf("Press Enter to step, type r' for registers,'mem <addr> <addr>' for mem dump, 'q' to quit: ");
         char input[10];
         fgets(input, 10, stdin);
@@ -112,7 +112,7 @@ if(theVM->mode == CPUMode_SingleStep) {
     }
     printf("Program Ended.\n");
 } else {
-    zvm_run_vm();
+    vm_run_vm();
 }
 
 return 0;
