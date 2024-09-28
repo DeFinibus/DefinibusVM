@@ -7,6 +7,7 @@
 #include "logging.h"
 #include <unistd.h>
 #include "vm_bios.h"
+#include "../disassembler.h"
 /*
 ZVM - kernel/CPU functionality
 
@@ -34,10 +35,27 @@ static inline void update_status_reg(int32_t result)
 void dump_memory(int32_t addr_start, int32_t addr_end)
 {
     int32_t addr = addr_start;
+    uint32_t instr_len = 0;
+    char instr_line[20];
+    char whole_line[50];
     while(addr < addr_end)
     {
-        printf("%08X: %08X\n",addr, theVM->prog_memory[addr]);
+        
+        memset(whole_line,0,sizeof(whole_line));
+        memset(instr_line,0,sizeof(instr_line));
+        sprintf(whole_line,"%08X: %08X",addr, theVM->prog_memory[addr]);
+        #if 1
+        if(instr_len==0)
+        {
+            instr_len=disassemble_line(theVM->prog_memory+addr, instr_line);
+            sprintf(whole_line+strlen(whole_line),"  %s",instr_line); 
+        }
+        #endif
+        printf(whole_line);
+        printf("\n");
         addr++;
+        if (instr_len > 0)
+            instr_len--;
     }
 }
 
