@@ -77,7 +77,11 @@ Currently x86 Linux environment supported only.
 
 1. Build the project: `make`
 2. Compile zvm assembler program `python3 compiler/zvm_compiler.py examples/hello.asm`
-2. Run the ZVM interpreter: `build/bin/zvm examples/hello.zvm` 
+3. Run the ZVM VM: `build/bin/zvm examples/hello.zvm` 
+4. Run in debug mode: `build/bin/zvm examples/hello.zvm --debug`
+
+Debug mode enables single stepping of instructions and memory dump with disassembly.
+memory dump can be invoked with following command: `mem [addr_start] [addr_end]`
 
 ## License
 
