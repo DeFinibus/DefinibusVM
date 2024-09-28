@@ -6,9 +6,20 @@ SRC_DIR = kernel
 BUILD_DIR = build
 OBJ_DIR = $(BUILD_DIR)/obj
 BIN_DIR = $(BUILD_DIR)/bin
+MKDIR_P = mkdir -p
 
-# Targets
-all: $(TARGET)
+.PHONY: directories
+
+all: directories program
+
+directories: ${OBJ_DIR} ${BIN_DIR}
+
+${OBJ_DIR}:
+	${MKDIR_P} ${OBJ_DIR}
+${BIN_DIR}:
+	${MKDIR_P} ${BIN_DIR}
+
+program: $(TARGET)
 
 $(TARGET): $(OBJ_DIR)/vm_core.o $(OBJ_DIR)/logging.o $(OBJ_DIR)/dfbvm.o  $(OBJ_DIR)/vm_bios.o  $(OBJ_DIR)/dissasembler.o
 	$(CC) $(CFLAGS) -o $(BIN_DIR)/$@ $^

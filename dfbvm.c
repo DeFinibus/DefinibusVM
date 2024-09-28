@@ -1,6 +1,6 @@
 /* 
 ------------------------------------------------------
-Implements main user interface for ZVM virtual machine
+Implements main user interface for Virtual machine
 ------------------------------------------------------
 */
 #include <stdio.h>
@@ -31,13 +31,13 @@ int main(int argc, char *argv[])
 {
 
 #ifndef DEV_DEBUG
-printf("ZVM Virtual Machine (c) MAP 2024.\n");
+printf("Definibus Virtual Machine (c) MAP 2024.\n");
 printf("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.\n");
-printf("https://github.com/Definibus/ZVM\n");
+printf("https://github.com/Definibus/DefinibusVM\n");
 printf("Version: %s\n",VM_VERSION);
 CPUMode cfg_cpu_mode = CPUMode_Continuous;
 if(argc < 2) {
-    printf("Usage: zvm <zvm program name>\n");
+    printf("Usage: dfbvm <program name>\n");
     return 1;
 }
 if(argc>2) {

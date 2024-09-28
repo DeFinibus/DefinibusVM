@@ -258,7 +258,7 @@ def main():
     print("This program is free software, you can redistribute it and/or modify it under the terms of the MIT license.")
     print()
     if len(sys.argv) != 2:
-        print("Usage: python zvm_compiler.py <input_file>")
+        print("Usage: python3 vm_compiler.py <input_file>")
         sys.exit(1)
 
     input_file = sys.argv[1]
