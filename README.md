@@ -68,11 +68,6 @@ Currently x86 Linux environment supported only.
 * Python 3
 
 
-
-
-
-
-
 ### Usage
 
 1. Build the project: `make`
