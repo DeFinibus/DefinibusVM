@@ -268,7 +268,7 @@ def main():
         program = f.readlines()
 
     program = [line.strip() for line in program]
-    compiler = ZVMCompiler()
+    compiler = VMCompiler()
     bytecode = compiler.compile_program(program)
     print("COMPILED CODE:")
     print(bytecode)
